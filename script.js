@@ -442,3 +442,91 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
   
+(function initButtons() {
+    const topContainer = document.getElementById('server-links-top');
+    const botContainer = document.getElementById('server-links-bottom');
+    
+    if (typeof matchStreams !== 'undefined' && matchStreams.length > 0) {
+      matchStreams.forEach((link, index) => {
+        // Create Button HTML
+        const btnHTML = `<button onclick="changeLink(${index}, this)" class="server-btn ${index === 0 ? 'active' : ''}">${link.name}</button>`;
+        
+        // Append to both containers
+        if(topContainer) topContainer.innerHTML += btnHTML;
+        if(botContainer) botContainer.innerHTML += btnHTML;
+      });
+      
+      // Load First Link Automatically
+      const player = document.getElementById('main-player');
+      if (player) player.src = matchStreams[0].url;
+    }
+  })();
+
+  // 2. CHANGE LINK FUNCTION
+  function changeLink(index, btn) {
+    if (typeof matchStreams === 'undefined' || !matchStreams[index]) return;
+    
+    // Update Player
+    const player = document.getElementById('main-player');
+    if (player.src !== matchStreams[index].url) {
+      player.src = matchStreams[index].url;
+    }
+    
+    // Update Active Class on ALL buttons (Top & Bottom)
+    const allBtns = document.querySelectorAll('.server-btn');
+    allBtns.forEach(b => b.classList.remove('active', 'bg-blue-600', 'text-white'));
+    
+    // Find buttons that correspond to this index and activate them
+    const totalLinks = matchStreams.length;
+    if(allBtns[index]) {
+       allBtns[index].classList.add('active'); // Top
+       allBtns[index].style.backgroundColor = '#2563eb';
+    }
+    if(allBtns[index + totalLinks]) {
+       allBtns[index + totalLinks].classList.add('active'); // Bottom
+       allBtns[index + totalLinks].style.backgroundColor = '#2563eb';
+    }
+    
+    // Reset others visually
+    allBtns.forEach(b => {
+        if(!b.classList.contains('active')) b.style.backgroundColor = '#334155';
+    });
+  }
+
+  // 3. STICKY PLAYER CLICK-TO-RETURN LOGIC (SINGLE CLICK)
+  document.addEventListener("DOMContentLoaded", function() {
+      const container = document.querySelector('.video-container');
+      const overlay = document.getElementById('sticky-click-overlay');
+      
+      // Monitor for Sticky Class changes
+      const observer = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+              if (mutation.attributeName === "class") {
+                  const isSticky = container.classList.contains('sticky-player');
+                  overlay.style.display = isSticky ? 'block' : 'none';
+              }
+          });
+      });
+      
+      if(container) {
+          observer.observe(container, { attributes: true });
+          
+          // Click Logic (Single Click to Return)
+          overlay.addEventListener('click', function() {
+              // Scroll to the top of the post container to guarantee we cross the threshold
+              const topTarget = document.getElementById('match-post-container');
+              if (topTarget) {
+                  topTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              } else {
+                  // Fallback
+                  document.body.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }
+          });
+      }
+      
+      // View Counter
+      setInterval(() => {
+        const el = document.getElementById('view-count');
+        if(el) el.innerText = (85000 + Math.floor(Math.random() * 500)).toLocaleString();
+      }, 5000);
+  });
